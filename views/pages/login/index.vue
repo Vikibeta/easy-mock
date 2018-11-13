@@ -12,10 +12,15 @@
         <transition name="fadeLeft">
           <div v-show="isLogin" v-click-outside="onClickOutside">
             <i-input size="large"
+              v-if="ldap"
+              :placeholder="$tc('p.login.form.placeholder', 2)"
+              ref="user" v-model="userName" @on-enter="login"></i-input>
+            <i-input size="large"
+              v-if="!ldap"
               :placeholder="$tc('p.login.form.placeholder', 1)"
               ref="user" v-model="userName" @on-enter="login"></i-input>
             <i-input size="large"
-              :placeholder="$tc('p.login.form.placeholder', 2)"
+              :placeholder="$t('p.login.form.password')"
               type="password" v-model="password" @on-enter="login"></i-input>
           </div>
         </transition>
@@ -167,7 +172,7 @@
 
 <script>
 import config from 'config'
-import cookie from 'react-cookie'
+import Cookies from 'universal-cookie'
 import * as api from '../../api'
 let resizeTimer
 
@@ -175,6 +180,7 @@ export default {
   name: 'index',
   data () {
     return {
+      ldap: config.ldap,
       isLogin: false,
       page: 0,
       userName: this.$ls.get('last-user'),
@@ -229,6 +235,7 @@ export default {
       })
     },
     login () {
+      const cookies = new Cookies()
       api.u.login({
         messageUnless: ['用户不存在'],
         data: {
@@ -241,7 +248,7 @@ export default {
           this.$store.commit('user/SET_VALUE', body.data)
           this.$ls.set('user', body.data)
           this.$ls.set('last-user', this.userName)
-          cookie.save(
+          cookies.set(
             config.storageNamespace + 'token',
             body.data.token,
             {

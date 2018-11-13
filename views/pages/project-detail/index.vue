@@ -7,7 +7,6 @@
       :nav="nav"
       v-model="pageName">
     </em-header>
-    <editor v-model="editor"></editor>
     <div v-shortkey="['tab']" @shortkey="handleKeyTab()"></div>
     <em-keyboard-short v-model="keyboards"></em-keyboard-short>
     <Back-top>
@@ -84,12 +83,10 @@
 </style>
 
 <script>
-import config from 'config'
 import Clipboard from 'clipboard'
 import debounce from 'lodash/debounce'
 
 import * as api from '../../api'
-import Editor from './editor'
 import Project from '../new/project'
 import MockExpand from './mock-expand'
 
@@ -104,9 +101,6 @@ export default {
         { title: this.$t('p.detail.nav[0]'), icon: 'android-list' },
         { title: this.$t('p.detail.nav[1]'), icon: 'gear-a' }
       ],
-      editor: {
-        show: false
-      },
       keyboards: [
         {
           category: this.$t('p.detail.keyboards[0].category'),
@@ -226,7 +220,7 @@ export default {
       }
     },
     baseUrl () {
-      const baseUrl = location.origin + config.mockPrefix + this.project._id
+      const baseUrl = location.origin + '/mock/' + this.project._id
       return this.project.url === '/' ? baseUrl : baseUrl + this.project.url
     },
     group () {
@@ -298,7 +292,7 @@ export default {
         content: ids.length > 1 ? this.$t('p.detail.remove.confirm[0]') : this.$t('p.detail.remove.confirm[1]'),
         onOk: () => {
           api.mock.delete({
-            data: { ids }
+            data: { project_id: this.project._id, ids }
           }).then((res) => {
             if (res.data.success) {
               this.$Message.success(this.$t('p.detail.remove.success'))
@@ -324,13 +318,16 @@ export default {
       })
     },
     openEditor (mock) {
-      this.editor = mock || {}
-      this.$set(this.editor, 'show', true)
+      if (mock) {
+        this.$store.commit('mock/SET_EDITOR_DATA', {mock, baseUrl: this.baseUrl})
+        this.$router.push(`/editor/${this.project._id}/${mock._id}`)
+      } else {
+        this.$router.push(`/editor/${this.project._id}`)
+      }
     }
   },
   components: {
-    Project,
-    Editor
+    Project
   }
 }
 </script>

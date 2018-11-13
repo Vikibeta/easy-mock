@@ -23,10 +23,10 @@
                 <Form-item :label="$t('p.profile.form.nickName')">
                   <i-input v-model="form.nickName"></i-input>
                 </Form-item>
-                <Form-item :label="$t('p.profile.form.password')">
+                <Form-item :label="$t('p.profile.form.password')" v-show="!ldap">
                   <i-input type="password" v-model="form.password"></i-input>
                 </Form-item>
-                <Form-item :label="$t('p.profile.form.passwordCheck')" prop="passwordCheck">
+                <Form-item :label="$t('p.profile.form.passwordCheck')" prop="passwordCheck" v-show="!ldap">
                   <i-input type="password" v-model="form.passwordCheck"></i-input>
                 </Form-item>
                 <Form-item>
@@ -47,6 +47,7 @@
                 :show-upload-list="false"
                 :format="['jpg','jpeg','png']"
                 :on-success="handleSuccess"
+                :headers="uploadHeaders"
                 :on-format-error="handleFormatError"
                 :action="uploadAPI">
                 <Button type="ghost" icon="ios-cloud-upload-outline" long>{{$t('p.profile.form.upload')}}</Button>
@@ -80,10 +81,11 @@ export default {
     }
 
     return {
+      ldap: config.ldap,
       visible: false,
       language: this.$ls.get('locale') || 'zh-CN',
       languageList: languageMap.list,
-      uploadAPI: config.uploadAPI,
+      uploadAPI: '/api/upload',
       form: {
         headImg: this.$store.state.user.headImg,
         nickName: this.$store.state.user.nickName,
@@ -97,6 +99,13 @@ export default {
       }
     }
   },
+  computed: {
+    uploadHeaders () {
+      return {
+        Authorization: 'Bearer ' + this.$store.state.user.token
+      }
+    }
+  },
   methods: {
     handleFormatError (file) {
       this.$Notice.warning({
@@ -105,12 +114,12 @@ export default {
       })
     },
     handleSuccess (response, file, fileList) {
-      this.form.headImg = response.path
+      this.form.headImg = response.data.path
     },
     update () {
       const data = {
         nick_name: this.form.nickName,
-        head_img: this.form.headImg.replace(/http(s)?:/, '')
+        head_img: this.form.headImg
       }
 
       if (this.form.password) {

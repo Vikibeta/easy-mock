@@ -15,7 +15,7 @@
           <transition name="fade">
             <Affix :offset-top="70" @on-change="changeFixed" v-if="!isChangelog">
               <Menu mode="horizontal" class="em-docs__nav">
-                <Submenu name="100" v-for="(parent, i) in nav" :key="i"
+                <Submenu :name="'100-' + i" v-for="(parent, i) in nav" :key="i"
                   v-if="parent.children.length > 0">
                   <template slot="title">{{parent.title}}</template>
                   <Menu-group>
@@ -144,7 +144,7 @@ export default {
         } else {
           this.nav[this.nav.length - 1].children.push({
             id: node.id,
-            title: node.innerText.split('# ')[1]
+            title: node.innerText
           })
         }
       }
